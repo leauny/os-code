@@ -54,17 +54,46 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+
 int pstree(int showPid, int pidSort){
+
+    struct Node* procList = getProc();
+
+    // 打印进程名称列表
+    procNode* ptr = procList->head.next;
+    while(ptr->next != &procList->tail){
+        printf("%s(%d)\n", ptr->name, ptr->pid);
+        ptr = ptr->next;
+    }
+
+    // 打印进程树
+    procTree(showPid, pidSort);
+
+    if(pidSort == 1){
+        printf("\n\nsorting ...\n\n");
+    }
+    return 0;
+}
+
+void procTree(int showPid, int pidSort){
+    printf("\nsystemd\n\tagent\n\t\thello\n\tclsdfasdfasash\n\t\tnode\n\thi\n");
+}
+
+struct Node* getProc(){
+    /*
+        获取进程的信息, 保存到struct结构体内
+    */
     // 链表头尾结点结构 &初始化
-    struct Node procList; 
-    procList.head.next = &procList.tail;
-    procList.tail.next = NULL;
+    struct Node *procList = (struct Node*)malloc(sizeof(struct Node)); 
+    procList->head.next = &procList->tail;
+    procList->tail.next = NULL;
 
     DIR *dir = opendir("/proc/"); // 记得closedir
 
     struct dirent *pdir; // 文件信息结构体
     int procNum = 0; // 进程的数量
     char state = ' '; // 用于存储进程状态
+    int umask = 0;
     char dirstr[30] = "/proc/"; // 用来存储目录信息
     while((pdir = readdir(dir)) != NULL){
         if(strcmp(pdir->d_name,".")==0 || strcmp(pdir->d_name,"..")==0){    ///current dir OR parrent dir
@@ -79,17 +108,18 @@ int pstree(int showPid, int pidSort){
         
         // 创建结点并连接
         procNode* node = (procNode*) malloc(sizeof(procNode));
-        node->next = procList.head.next;
-        procList.head.next = node;
+        node->next = procList->head.next;
+        procList->head.next = node;
         
         if(freopen(dirstr, "r", stdin) != NULL){
             // 获取进程信息, 并存入结构体内
-            scanf("Name:\t%s\nUmask:\t%s\nState:\t%c%s\nTgid:\t%d\nNgid:\t%d\nPid:\t%d\nPPid:\t%d", node->name, dirstr, &state, dirstr, &node->pid, &node->pid, &node->pid, &node->ppid);
-            if(atoi(pdir->d_name) != node->pid || node->ppid == 0 || state == 'I' || strcmp(node->name, "sleep") == 0){
+            scanf("Name:\t%s\nUmask:\t%d\nState:\t%c%s\nTgid:\t%d\nNgid:\t%d\nPid:\t%d\nPPid:\t%d", node->name, &umask, &state, dirstr, &node->pid, &node->pid, &node->pid, &node->ppid);
+            if(atoi(pdir->d_name) != node->pid || node->ppid == 0 || state == 'I' || strcmp(node->name, "sleep") == 0 || umask != 22){
                 // 阻止ppid为0的进程以及消失的进程
                 // 阻止Idle进程
                 // 阻止sleep进程
-                procList.head.next = node->next; // 去除消失的进程结点
+                // 阻止umask非0022的进程
+                procList->head.next = node->next; // 去除消失的进程结点
                 if(node != NULL){
                     free(node); // 释放内存(可能导致释放两次)
                     node = NULL;
@@ -102,23 +132,12 @@ int pstree(int showPid, int pidSort){
         state = ' '; // 重置状态
     }
     printf("\nProcNum : %d\n\n", procNum);
-
-    procNode* ptr = procList.head.next;
-    while(ptr->next != &procList.tail){
-        printf("%s\n", ptr->name);
-        ptr = ptr->next;
-    }
-
-    if(pidSort == 1){
-        printf("sorting ...\n");
-    }
-    printf("TREE!\n");
-
+    
     // 关闭文件夹读写
     closedir(dir);
-    return 0;
+    return procList;
 }
 
 void showVersion(){
-    printf("\n\tpstree version 0.1 (LEAUNY)  Copyright (C) 2022-2022 Hammer King\n\n");
+    fprintf(stderr,"\n\tpstree version 0.1 (LEAUNY)  Copyright (C) 2022-2022 Hammer King\n\n");
 }
