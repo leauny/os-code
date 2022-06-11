@@ -15,7 +15,6 @@ typedef struct proc{
 // 定义进程链表头尾结点
 struct Node{
     procNode head;
-    procNode tail;
     int number;
 };
 
@@ -32,6 +31,7 @@ int pstree(int showPid, int pidSort);
 void procTree(int showPid, int pidSort);
 void formationTree(struct Node* ptr, procNode* currentProc);
 void printTree(procNode* root, int deepth);
+void printTreeV2(procNode* root, int showPid, int deepth);
 struct Node* getProc();
 
 #endif

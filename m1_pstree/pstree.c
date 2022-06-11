@@ -9,7 +9,7 @@
 int main(int argc, char *argv[]) {
     int pidSort = 0;
     int showPid = 0;
-    for (int i = 0; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         assert(argv[i]); // C 标准保证
         if(argv[i][0] == '-'){
             // 先判断第一个参数是不是-, 然后开始接下来判断是短命令还是长命令, 接着分别查看是否存在V, p, n三个参数
@@ -21,11 +21,9 @@ int main(int argc, char *argv[]) {
                 }else if(strcmp(argv[i],"--numeric-sort") == 0){
                     // 存在排序
                     pidSort = 1;
-                    break;
                 }else if(strcmp(argv[i], "--show-pids") == 0){
                     // 存在显示pid
                     showPid = 1;
-                    break;
                 }
             }else{
                 for(int j = 1; argv[i][j] != '\0'; j++){
@@ -47,7 +45,6 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        // printf("argv[%d] = %s\n", i, argv[i]);
     }
     assert(!argv[argc]); // C 标准保证
     pstree(showPid, pidSort);
@@ -72,11 +69,38 @@ int pstree(int showPid, int pidSort){
     procNode* root = (procNode*)malloc(sizeof(procNode));
     strcpy(root->name, "root"); root->next=NULL; root->nextLevel=NULL; root->pid=0; root->ppid=-1;
 
+    printprocList(procList->head.next);
+
     formationTree(procList, root);
 
-    printTree(root->nextLevel, 0);
+    printprocList(root->nextLevel);
+
+    // printTree(root->nextLevel, 0);
+    
+    // printTreeV2(root->nextLevel, showPid, 0);
 
     return 0;
+}
+
+void printTreeV2(procNode* root, int showPid, int deepth){
+    while(root != NULL){
+        for(int i = deepth; i > 0; i--){
+            printf("\t");
+        }
+        printf("%s", root->name);
+        if(showPid == 1){
+            if(root->pid == 0){
+                printf("%s(%d:%d)", root->name, root->ppid, root->pid);
+            }
+            printf("(%d)", root->pid);
+        }
+        printf("\n");
+        
+        if(root->nextLevel != NULL){
+            printTreeV2(root->nextLevel, showPid, deepth + 1);
+        }
+        root = root->next;
+    }
 }
 
 void printTree(procNode* root, int deepth){
@@ -195,9 +219,6 @@ struct Node* getProc(){
         
         // 创建结点并连接
         procNode* node = (procNode*) malloc(sizeof(procNode));
-        tailptr->next = node;
-        node->nextLevel = NULL;
-        node->next = NULL;// &procList->tail;
         
         if(freopen(dirstr, "r", stdin) != NULL){
             // 获取进程信息, 并存入结构体内
@@ -212,13 +233,13 @@ struct Node* getProc(){
                 // 阻止Idle进程
                 // 阻止sleep进程
                 // 阻止umask非0022的进程
-                tailptr->next = NULL; // &procList->tail; // 去除消失的进程结点
-                if(tailptr->next == NULL){// &procList->tail){
-                    free(node); // 释放内存
-                    node = NULL; // 不置为null可能导致释放两次
-                }
+                free(node); // 释放内存
+                node = NULL; // 不置为null可能导致释放两次
             }else{
                 procNum++;
+                tailptr->next = node;
+                node->nextLevel = NULL;
+                node->next = NULL;
                 tailptr = tailptr->next; // 只有完全获取proc信息后才移动尾指针, 否则会导致出现冗余错误信息
             }
         }
