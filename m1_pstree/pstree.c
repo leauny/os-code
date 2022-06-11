@@ -69,15 +69,15 @@ int pstree(int showPid, int pidSort){
     procNode* root = (procNode*)malloc(sizeof(procNode));
     strcpy(root->name, "root"); root->next=NULL; root->nextLevel=NULL; root->pid=0; root->ppid=-1;
 
-    printprocList(procList->head.next);
+    // printprocList(procList->head.next);
 
     formationTree(procList, root);
 
-    printprocList(root->nextLevel);
+    // printprocList(root->nextLevel);
 
     // printTree(root->nextLevel, 0);
-    
-    // printTreeV2(root->nextLevel, showPid, 0);
+
+    printTreeV2(root->nextLevel, showPid, 0);
 
     return 0;
 }
@@ -89,9 +89,6 @@ void printTreeV2(procNode* root, int showPid, int deepth){
         }
         printf("%s", root->name);
         if(showPid == 1){
-            if(root->pid == 0){
-                printf("%s(%d:%d)", root->name, root->ppid, root->pid);
-            }
             printf("(%d)", root->pid);
         }
         printf("\n");
