@@ -253,5 +253,5 @@ struct Node* getProc(){
 }
 
 void showVersion(){
-    fprintf(stderr,"\n\tpstree version 0.1 (LEAUNY)  Copyright (C) 2022-2022 Hammer King\n\n");
+    fprintf(stderr,"\n\tpstree version 0.2 (LEAUNY)  Copyright (C) 2022-2022 Hammer King\n\n");
 }
